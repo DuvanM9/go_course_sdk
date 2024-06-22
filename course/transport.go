@@ -40,17 +40,17 @@ func (c *clientHTTP) Get(id string) (*domain.Course, error) {
 		return nil, resp.Err
 	}
 
-	if resp.StatusCode == 404 {
-		return nil, ErrNotFound{Message: resp.String()}
-	}
-
-	if resp.StatusCode > 299 {
+	// rellenar dataResponse con la respuesta de resp
+	if err := resp.FillUp(&dataResponse); err != nil {
 		return nil, fmt.Errorf("%s", resp)
 	}
 
-	// rellenar dataResponse con la respuesta de resp
-	if err := resp.FillUp(&dataResponse); err != nil {
-		return nil, err
+	if resp.StatusCode == 404 {
+		return nil, ErrNotFound{Message: dataResponse.Message}
+	}
+
+	if resp.StatusCode > 299 {
+		return nil, fmt.Errorf("%s", dataResponse.Message)
 	}
 
 	return dataResponse.Data.(*domain.Course), nil
